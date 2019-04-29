@@ -34,14 +34,16 @@
 //! To get the shared secret use `get_key` method. As alternative to using
 //! `verify` method it's also possible to use this key for authentificated
 //! encryption.
-use std::marker::PhantomData;
-
-use digest::Digest;
-use generic_array::GenericArray;
-use num::{BigUint, Zero};
-
-use crate::tools::powm;
-use crate::types::{SrpAuthError, SrpGroup};
+use {
+    crate::{
+        tools::powm,
+        types::{SrpAuthError, SrpGroup},
+    },
+    core::marker::PhantomData,
+    digest::{generic_array::GenericArray, Digest},
+    num_bigint::BigUint,
+    num_traits::Zero,
+};
 
 /// Data provided by users upon registration, usually stored in the database.
 pub struct UserRecord<'a> {

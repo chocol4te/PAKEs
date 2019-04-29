@@ -1,8 +1,5 @@
 //! Additional SRP types.
-use crate::tools::powm;
-use digest::Digest;
-use num::BigUint;
-use std::{error, fmt};
+use {crate::tools::powm, core::fmt, digest::Digest, num_bigint::BigUint, std::error};
 
 /// SRP authentification error.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]

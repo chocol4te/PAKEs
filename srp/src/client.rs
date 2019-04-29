@@ -56,14 +56,16 @@
 //! let pwd_verifier = client.get_password_verifier(&private_key);
 //! conn.send_registration_data(username, salt, pwd_verifier);
 //! ```
-use std::marker::PhantomData;
-
-use digest::Digest;
-use generic_array::GenericArray;
-use num::{BigUint, Zero};
-
-use crate::tools::powm;
-use crate::types::{SrpAuthError, SrpGroup};
+use {
+    crate::{
+        tools::powm,
+        types::{SrpAuthError, SrpGroup},
+    },
+    core::marker::PhantomData,
+    digest::{generic_array::GenericArray, Digest},
+    num_bigint::BigUint,
+    num_traits::Zero,
+};
 
 /// SRP client state before handshake with the server.
 pub struct SrpClient<'a, D: Digest> {
