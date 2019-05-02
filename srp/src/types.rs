@@ -1,7 +1,10 @@
 //! Additional SRP types.
 use {
-    crate::tools::powm, core::fmt, digest::Digest, heapless::ArrayLength, heapless_bigint::BigUint,
-    std::error,
+    crate::tools::powm,
+    core::fmt,
+    digest::Digest,
+    heapless::{ArrayLength, Vec},
+    heapless_bigint::BigUint,
 };
 
 /// SRP authentification error.
@@ -16,11 +19,13 @@ impl fmt::Display for SrpAuthError {
     }
 }
 
+/*
 impl error::Error for SrpAuthError {
     fn description(&self) -> &str {
         self.description
     }
 }
+*/
 
 /// Group used for SRP computations
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -38,9 +43,12 @@ impl<N: ArrayLength<u8>> SrpGroup<N> {
 
     /// Compute `k` with given hash function and return SRP parameters
     pub(crate) fn compute_k<D: Digest>(&self) -> BigUint<N> {
-        let n = self.n.to_bytes_be();
-        let g_bytes = self.g.to_bytes_be();
-        let mut buf = vec![0u8; n.len()];
+        let n = self.n.clone().to_bytes_be();
+        let g_bytes = self.g.clone().to_bytes_be();
+            let mut buf = Vec::<u8, N>::new();
+            for _ in 0..n.len() {
+                buf.push(0).unwrap();
+            }
         let l = n.len() - g_bytes.len();
         buf[l..].copy_from_slice(&g_bytes);
 
@@ -51,6 +59,7 @@ impl<N: ArrayLength<u8>> SrpGroup<N> {
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     use crate::groups::G_1024;
@@ -62,3 +71,4 @@ mod tests {
         assert_eq!(&k, include_bytes!("k_sha1_1024.bin"));
     }
 }
+*/

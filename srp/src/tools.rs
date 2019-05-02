@@ -14,10 +14,10 @@ pub fn powm<N: ArrayLength<u8>>(
 
     while exp > zero {
         if &exp % &two == one {
-            result = (result * &base) % modulus;
+            result = &(&result * &base) % modulus;
         }
         exp >>= 1;
-        base = (&base * &base) % modulus;
+        base = &(&base * &base) % modulus;
     }
     result
 }

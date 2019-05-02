@@ -43,7 +43,6 @@ use {
     digest::{generic_array::GenericArray, Digest},
     heapless::{ArrayLength, Vec},
     heapless_bigint::BigUint,
-    num_traits::Zero,
 };
 
 /// Data provided by users upon registration, usually stored in the database.
@@ -81,23 +80,23 @@ impl<D: Digest, N: ArrayLength<u8>> SrpServer<D, N> {
             });
         }
         let v = BigUint::from_bytes_be(user.verifier);
-        let b = BigUint::from_bytes_be(b) % &params.n;
+        let b = &BigUint::from_bytes_be(b) % &params.n;
         let k = params.compute_k::<D>();
         // kv + g^b
-        let interm = (k * &v) % &params.n;
-        let b_pub = (interm + &params.powm(&b)) % &params.n;
+        let interm = &(&k * &v) % &params.n;
+        let b_pub = &(interm + params.powm(&b)) % &params.n;
         // H(A || B)
         let u = {
             let mut d = D::new();
-            d.input(&a_pub.to_bytes_be());
-            d.input(&b_pub.to_bytes_be());
+            d.input(&a_pub.clone().to_bytes_be());
+            d.input(&b_pub.clone().to_bytes_be());
             d.result()
         };
         let d = Default::default();
         //(Av^u) ^ b
         let key = {
             let u = BigUint::from_bytes_be(&u);
-            let t = (&a_pub * powm(&v, &u, &params.n)) % &params.n;
+            let t = &(&a_pub * &powm(&v, &u, &params.n)) % &params.n;
             let s = powm(&t, &b, &params.n);
             D::digest(&s.to_bytes_be())
         };
@@ -112,12 +111,12 @@ impl<D: Digest, N: ArrayLength<u8>> SrpServer<D, N> {
 
     /// Get private `b` value. (see `new_with_b` documentation)
     pub fn get_b(&self) -> Vec<u8, N> {
-        self.b.to_bytes_be()
+        self.b.clone().to_bytes_be()
     }
 
     /// Get public `b_pub` value for sending to the user.
     pub fn get_b_pub(&self) -> Vec<u8, N> {
-        self.b_pub.to_bytes_be()
+        self.b_pub.clone().to_bytes_be()
     }
 
     /// Get shared secret between user and the server. (do not forget to verify
@@ -134,14 +133,14 @@ impl<D: Digest, N: ArrayLength<u8>> SrpServer<D, N> {
     ) -> Result<GenericArray<u8, D::OutputSize>, SrpAuthError> {
         // M = H(A, B, K)
         let mut d = D::new();
-        d.input(&self.a_pub.to_bytes_be());
-        d.input(&self.b_pub.to_bytes_be());
+        d.input(&self.a_pub.clone().to_bytes_be());
+        d.input(&self.b_pub.clone().to_bytes_be());
         d.input(&self.key);
 
         if user_proof == d.result().as_slice() {
             // H(A, M, K)
             let mut d = D::new();
-            d.input(&self.a_pub.to_bytes_be());
+            d.input(&self.a_pub.clone().to_bytes_be());
             d.input(user_proof);
             d.input(&self.key);
             Ok(d.result())

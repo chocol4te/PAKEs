@@ -11,17 +11,15 @@ keywords = ["crypto", "pake", "authentication"]
 categories = ["cryptography", "authentication"]
 
 [dependencies]
-digest = "0.8"
-lazy_static = "1.3.0"
-num-traits = { version = "0.2.6", default-features = false }
+digest =  { version = "0.8.0", default-features = false }
+lazy_static = { version = "1.3.0", default-features = false}
 heapless_bigint = { path = "/Users/ferdiamckeogh/Documents/embedded/heapless_bigint/heapless_bigint" }
 heapless = "0.4.4"
 
 
 [dev-dependencies]
-rand = "0.6"
-sha2 = "0.8"
-sha-1 = "0.8"
-
+#rand = "0.6"
+#sha2 = "0.8"
+#sha-1 = "0.8"
 [badges]
 travis-ci = { repository = "RustCrypto/PAKEs" }

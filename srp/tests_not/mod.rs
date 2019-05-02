@@ -2,6 +2,7 @@ use rand;
 use rand::RngCore;
 use sha2::Sha256;
 
+use heapless::consts::*;
 use srp::client::{srp_private_key, SrpClient};
 use srp::groups::G_2048;
 use srp::server::{SrpServer, UserRecord};
@@ -13,7 +14,7 @@ fn auth_test(reg_pwd: &[u8], auth_pwd: &[u8]) {
     // Client instance creation
     let mut a = [0u8; 64];
     rng.fill_bytes(&mut a);
-    let client = SrpClient::<Sha256>::new(&a, &G_2048);
+    let client = SrpClient::<Sha256, U4096>::new(&a, &G_2048);
 
     // Registration
     let mut salt = [0u8; 16];
@@ -32,7 +33,7 @@ fn auth_test(reg_pwd: &[u8], auth_pwd: &[u8]) {
     };
     let mut b = [0u8; 64];
     rng.fill_bytes(&mut b);
-    let server = SrpServer::<Sha256>::new(&user, &a_pub, &b, &G_2048).unwrap();
+    let server = SrpServer::<Sha256, U4096>::new(&user, &a_pub, &b, &G_2048).unwrap();
     let (salt, b_pub) = (&user.salt, server.get_b_pub());
 
     // Client processes handshake reply

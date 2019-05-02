@@ -65,7 +65,6 @@ use {
     digest::{generic_array::GenericArray, Digest},
     heapless::{ArrayLength, Vec},
     heapless_bigint::BigUint,
-    num_traits::Zero,
 };
 
 /// SRP client state before handshake with the server.
@@ -134,15 +133,15 @@ impl<'a, D: Digest, N: ArrayLength<u8>> SrpClient<'a, D, N> {
     ) -> GenericArray<u8, D::OutputSize> {
         let n = &self.params.n;
         let k = self.params.compute_k::<D>();
-        let interm = (k * self.params.powm(x)) % n;
+        let interm = &(k * self.params.powm(x)) % n;
         // Because we do operation in modulo N we can get: (kv + g^b) < kv
         let v = if *b_pub > interm {
-            (b_pub - &interm) % n
+            &(b_pub - &interm) % n
         } else {
-            (n + b_pub - &interm) % n
+            &(n + b_pub - interm) % n
         };
         // S = |B - kg^x| ^ (a + ux)
-        let s = powm(&v, &(&self.a + (u * x) % n), n);
+        let s = powm(&v, &(&self.a + &(&(u * x) % n)), n);
         D::digest(&s.to_bytes_be())
     }
 
@@ -154,7 +153,7 @@ impl<'a, D: Digest, N: ArrayLength<u8>> SrpClient<'a, D, N> {
     ) -> Result<SrpClientVerifier<D>, SrpAuthError> {
         let u = {
             let mut d = D::new();
-            d.input(&self.a_pub.to_bytes_be());
+            d.input(&self.a_pub.clone().to_bytes_be());
             d.input(b_pub);
             BigUint::from_bytes_be(&d.result())
         };
@@ -173,7 +172,7 @@ impl<'a, D: Digest, N: ArrayLength<u8>> SrpClient<'a, D, N> {
         // M1 = H(A, B, K)
         let proof = {
             let mut d = D::new();
-            d.input(&self.a_pub.to_bytes_be());
+            d.input(&self.a_pub.clone().to_bytes_be());
             d.input(&b_pub.to_bytes_be());
             d.input(&key);
             d.result()
@@ -197,7 +196,7 @@ impl<'a, D: Digest, N: ArrayLength<u8>> SrpClient<'a, D, N> {
 
     /// Get public ephemeral value for handshaking with the server.
     pub fn get_a_pub(&self) -> Vec<u8, N> {
-        self.a_pub.to_bytes_be()
+        self.a_pub.clone().to_bytes_be()
     }
 }
 
