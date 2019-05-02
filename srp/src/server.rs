@@ -41,7 +41,8 @@ use {
     },
     core::marker::PhantomData,
     digest::{generic_array::GenericArray, Digest},
-    num_bigint::BigUint,
+    heapless::{ArrayLength, Vec},
+    heapless_bigint::BigUint,
     num_traits::Zero,
 };
 
@@ -54,23 +55,23 @@ pub struct UserRecord<'a> {
 }
 
 /// SRP server state
-pub struct SrpServer<D: Digest> {
-    b: BigUint,
-    a_pub: BigUint,
-    b_pub: BigUint,
+pub struct SrpServer<D: Digest, N: ArrayLength<u8>> {
+    b: BigUint<N>,
+    a_pub: BigUint<N>,
+    b_pub: BigUint<N>,
 
     key: GenericArray<u8, D::OutputSize>,
 
     d: PhantomData<D>,
 }
 
-impl<D: Digest> SrpServer<D> {
+impl<D: Digest, N: ArrayLength<u8>> SrpServer<D, N> {
     /// Create new server state.
     pub fn new(
         user: &UserRecord<'_>,
         a_pub: &[u8],
         b: &[u8],
-        params: &SrpGroup,
+        params: &SrpGroup<N>,
     ) -> Result<Self, SrpAuthError> {
         let a_pub = BigUint::from_bytes_be(a_pub);
         // Safeguard against malicious A
@@ -110,12 +111,12 @@ impl<D: Digest> SrpServer<D> {
     }
 
     /// Get private `b` value. (see `new_with_b` documentation)
-    pub fn get_b(&self) -> Vec<u8> {
+    pub fn get_b(&self) -> Vec<u8, N> {
         self.b.to_bytes_be()
     }
 
     /// Get public `b_pub` value for sending to the user.
-    pub fn get_b_pub(&self) -> Vec<u8> {
+    pub fn get_b_pub(&self) -> Vec<u8, N> {
         self.b_pub.to_bytes_be()
     }
 

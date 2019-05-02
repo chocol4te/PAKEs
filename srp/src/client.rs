@@ -63,16 +63,17 @@ use {
     },
     core::marker::PhantomData,
     digest::{generic_array::GenericArray, Digest},
-    num_bigint::BigUint,
+    heapless::{ArrayLength, Vec},
+    heapless_bigint::BigUint,
     num_traits::Zero,
 };
 
 /// SRP client state before handshake with the server.
-pub struct SrpClient<'a, D: Digest> {
-    params: &'a SrpGroup,
+pub struct SrpClient<'a, D: Digest, N: ArrayLength<u8>> {
+    params: &'a SrpGroup<N>,
 
-    a: BigUint,
-    a_pub: BigUint,
+    a: BigUint<N>,
+    a_pub: BigUint<N>,
 
     d: PhantomData<D>,
 }
@@ -104,9 +105,9 @@ pub fn srp_private_key<D: Digest>(
     d.result()
 }
 
-impl<'a, D: Digest> SrpClient<'a, D> {
+impl<'a, D: Digest, N: ArrayLength<u8>> SrpClient<'a, D, N> {
     /// Create new SRP client instance.
-    pub fn new(a: &[u8], params: &'a SrpGroup) -> Self {
+    pub fn new(a: &[u8], params: &'a SrpGroup<N>) -> Self {
         let a = BigUint::from_bytes_be(a);
         let a_pub = params.powm(&a);
 
@@ -119,7 +120,7 @@ impl<'a, D: Digest> SrpClient<'a, D> {
     }
 
     /// Get password verfier for user registration on the server
-    pub fn get_password_verifier(&self, private_key: &[u8]) -> Vec<u8> {
+    pub fn get_password_verifier(&self, private_key: &[u8]) -> Vec<u8, N> {
         let x = BigUint::from_bytes_be(private_key);
         let v = self.params.powm(&x);
         v.to_bytes_be()
@@ -127,9 +128,9 @@ impl<'a, D: Digest> SrpClient<'a, D> {
 
     fn calc_key(
         &self,
-        b_pub: &BigUint,
-        x: &BigUint,
-        u: &BigUint,
+        b_pub: &BigUint<N>,
+        x: &BigUint<N>,
+        u: &BigUint<N>,
     ) -> GenericArray<u8, D::OutputSize> {
         let n = &self.params.n;
         let k = self.params.compute_k::<D>();
@@ -195,7 +196,7 @@ impl<'a, D: Digest> SrpClient<'a, D> {
     }
 
     /// Get public ephemeral value for handshaking with the server.
-    pub fn get_a_pub(&self) -> Vec<u8> {
+    pub fn get_a_pub(&self) -> Vec<u8, N> {
         self.a_pub.to_bytes_be()
     }
 }

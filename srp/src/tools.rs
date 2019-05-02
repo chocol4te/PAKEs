@@ -1,9 +1,13 @@
-use num_bigint::BigUint;
+use {heapless::ArrayLength, heapless_bigint::BigUint};
 
-pub fn powm(base: &BigUint, exp: &BigUint, modulus: &BigUint) -> BigUint {
-    let zero = BigUint::new(vec![0]);
-    let one = BigUint::new(vec![1]);
-    let two = BigUint::new(vec![2]);
+pub fn powm<N: ArrayLength<u8>>(
+    base: &BigUint<N>,
+    exp: &BigUint<N>,
+    modulus: &BigUint<N>,
+) -> BigUint<N> {
+    let zero = BigUint::from_bytes_be(&[0]);
+    let one = BigUint::from_bytes_be(&[1]);
+    let two = BigUint::from_bytes_be(&[2]);
     let mut exp = exp.clone();
     let mut result = one.clone();
     let mut base = base % modulus;

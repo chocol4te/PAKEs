@@ -1,5 +1,8 @@
 //! Additional SRP types.
-use {crate::tools::powm, core::fmt, digest::Digest, num_bigint::BigUint, std::error};
+use {
+    crate::tools::powm, core::fmt, digest::Digest, heapless::ArrayLength, heapless_bigint::BigUint,
+    std::error,
+};
 
 /// SRP authentification error.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -21,20 +24,20 @@ impl error::Error for SrpAuthError {
 
 /// Group used for SRP computations
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct SrpGroup {
+pub struct SrpGroup<N: ArrayLength<u8>> {
     /// A large safe prime (N = 2q+1, where q is prime)
-    pub n: BigUint,
+    pub n: BigUint<N>,
     /// A generator modulo N
-    pub g: BigUint,
+    pub g: BigUint<N>,
 }
 
-impl SrpGroup {
-    pub(crate) fn powm(&self, v: &BigUint) -> BigUint {
+impl<N: ArrayLength<u8>> SrpGroup<N> {
+    pub(crate) fn powm(&self, v: &BigUint<N>) -> BigUint<N> {
         powm(&self.g, v, &self.n)
     }
 
     /// Compute `k` with given hash function and return SRP parameters
-    pub(crate) fn compute_k<D: Digest>(&self) -> BigUint {
+    pub(crate) fn compute_k<D: Digest>(&self) -> BigUint<N> {
         let n = self.n.to_bytes_be();
         let g_bytes = self.g.to_bytes_be();
         let mut buf = vec![0u8; n.len()];
