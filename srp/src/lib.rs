@@ -67,7 +67,6 @@
 #![no_std]
 
 pub mod client;
-pub mod groups;
 pub mod server;
 mod tools;
 pub mod types;
